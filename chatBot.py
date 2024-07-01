@@ -106,7 +106,7 @@ with st.sidebar:
         st.session_state.messages = [
             {"role": "assistant", "content": "Hello There! How are you doing today?"}
         ]
-        st.experimental_rerun()
+        st.rerun()
 
 # Conversation summary button
     st.subheader("Conversation Summary")
