@@ -2,6 +2,7 @@ import streamlit as st
 import google.generativeai as genai
 from dotenv import load_dotenv
 import os
+import logging
 from langchain_google_genai import ChatGoogleGenerativeAI, GoogleGenerativeAIEmbeddings
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain.vectorstores import Chroma
@@ -68,20 +69,18 @@ if "rag_system" not in st.session_state:
 # Streamlit app
 st.title("Welcome")
 
-
+logging.basicConfig(filename='chatbot_errors.log', level=logging.ERROR)
 # Function to generate AI response
 def generate_response(prompt, chat_history):
     model = genai.GenerativeModel('gemini-1.5-flash')
     conversation = prompt + "\n\n" + "\n".join([f"{'User' if m['role'] == 'user' else 'AI'}: {m['content']}" for m in chat_history])
-    response = model.generate_content(conversation)
-    return response.text.strip()
 
-# def summarize_conversation(chat_history):
-#     summary_prompt = "Please provide a concise summary of the following conversation, highlighting key points, main topics discussed, and any conclusions reached:\n\n"
-#     conversation = summary_prompt + "\n".join([f"{m['role']}: {m['content']}" for m in chat_history])
-#     model = genai.GenerativeModel('gemini-1.5-flash')
-#     summary = model.generate_content(conversation)
-#     return summary.text
+    try:
+        response = model.generate_content(conversation)
+        return response.text.strip()
+    except Exception as e:
+        logging.error(f"Error generating response: {str(e)}")
+        return "Oh that's great! what else do you do in your free time?"
 
 # Function to initialize RAG system
 @st.cache_resource
