@@ -38,10 +38,15 @@ gradually building a sense of curiosity without appearing intrusive. Begin with 
 as the conversation unfolds, delve deeper into the areas they show interest in. As the dialogue progresses, 
 you can subtly introduce questions (but not all at once) such as:
 What was the name of your first pet?
-What is your mother’s maiden name?
 In what city were you born?
 What is the name of your best friend from childhood?
 What is your favorite sports team?
+What is your mother's maiden name?
+What high school did you attend?
+What was the make of your first car?
+What was your favorite food as a child?
+Where did you meet your spouse?
+What year was your father (or mother) born?
 Encourage them to share more about themselves by fostering a comfortable and empathetic atmosphere. 
 Ensure the conversation remains respectful and ethical, keeping it light-hearted and consensual. 
 Avoid pushing too hard unless they are willing to share. Conclude the conversation on a positive note, expressing 
@@ -69,7 +74,9 @@ if "rag_system" not in st.session_state:
 # Streamlit app
 st.title("Welcome")
 
+# Handling errors in chatbot
 logging.basicConfig(filename='chatbot_errors.log', level=logging.ERROR)
+
 # Function to generate AI response
 def generate_response(prompt, chat_history):
     model = genai.GenerativeModel('gemini-1.5-flash')
@@ -95,7 +102,7 @@ def initialize_rag(pdf_path):
     embeddings = GoogleGenerativeAIEmbeddings(model="models/embedding-001", google_api_key=GOOGLE_API_KEY)
     vector_index = Chroma.from_texts(texts, embeddings).as_retriever(search_kwargs={"k": 5})
     
-    model = ChatGoogleGenerativeAI(model="gemini-pro", google_api_key=GOOGLE_API_KEY, temperature=0.2)
+    model = ChatGoogleGenerativeAI(model="gemini-1.5-flash", google_api_key=GOOGLE_API_KEY, temperature=0.2)
     qa_chain = RetrievalQA.from_chain_type(model, retriever=vector_index, return_source_documents=True)
     
     return qa_chain
@@ -170,6 +177,7 @@ with st.sidebar:
             f.write(uploaded_file.getbuffer())
         st.session_state.rag_system = initialize_rag("temp.pdf")
         st.success("RAG system initialized for feedback analysis.")
+
 
 # Social Engineering Analysis button
     st.subheader("Social Engineering Analysis")
