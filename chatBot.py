@@ -89,6 +89,32 @@ def generate_response(prompt, chat_history):
         logging.error(f"Error generating response: {str(e)}")
         return "Oh that's great! what else do you do in your free time?"
 
+# Display chat messages
+for message in st.session_state.messages:
+    with st.chat_message(message["role"]):
+        st.write(message["content"])
+
+# Chat input
+user_input = st.chat_input("Type your message here...")
+
+if user_input:
+    # Add user message to chat history
+    st.session_state.messages.append({"role": "user", "content": user_input})
+    
+    # Display user message
+    with st.chat_message("user"):
+        st.write(user_input)
+    
+    ai_response = generate_response(CUSTOM_PROMPT, st.session_state.messages)
+    
+    # Add AI response to chat history
+    st.session_state.messages.append({"role": "assistant", "content": ai_response})
+    
+    # Display AI response
+    with st.chat_message("assistant"):
+        st.write(ai_response)
+
+
 # Function to initialize RAG system
 @st.cache_resource
 def initialize_rag(pdf_path):
@@ -139,31 +165,6 @@ def analyze_conversation(conversation, rag_system):
     analysis_result = rag_system({"query": comprehensive_analysis_prompt})["result"]
 
     return analysis_result
-
-# Chat input
-user_input = st.chat_input("Type your message here...")
-
-if user_input:
-    # Add user message to chat history
-    st.session_state.messages.append({"role": "user", "content": user_input})
-    
-    # Display user message
-    with st.chat_message("user"):
-        st.write(user_input)
-    
-    ai_response = generate_response(CUSTOM_PROMPT, st.session_state.messages)
-    
-    # Add AI response to chat history
-    st.session_state.messages.append({"role": "assistant", "content": ai_response})
-    
-    # Display AI response
-    with st.chat_message("assistant"):
-        st.write(ai_response)
-
-# Display chat messages
-for message in st.session_state.messages:
-    with st.chat_message(message["role"]):
-        st.write(message["content"])
 
 
 # Sidebar for additional controls ------------------------------------------------------------------------------
