@@ -59,7 +59,7 @@ Remember:
 4. Respect the user's privacy and don't insist if they seem uncomfortable.
 5. Maintain a casual, friendly tone throughout the conversation.
 6. Do not generate multiple responses or anticipate user replies. Wait for actual user input.
-7. After the conversation is done, just say "Goodbye!"
+7. After the conversation is done, bid farewell and "Goodbye!"
 """
 
 # Initialize session state
@@ -109,28 +109,36 @@ def initialize_rag(pdf_path):
 
 # Function to analyze conversation for social engineering susceptibility
 def analyze_conversation(conversation, rag_system):
-    analysis_prompt = f"""
-    Analyze the following conversation for signs of social engineering susceptibility. 
-    Consider factors such as:
-    1. Willingness to share personal information
-    2. Emotional manipulation
-    3. Urgency or pressure tactics
-    4. Trust building techniques
-    5. Information gathering strategies
+    # First, extract key information from the PDF
+    pdf_query = "Summarize the key factors that indicate susceptibility to social engineering attacks from this attached document."
+    pdf_content = rag_system({"query": pdf_query})["result"]
+
+    # Now, use this PDF content in our comprehensive analysis prompt
+    comprehensive_analysis_prompt = f"""
+    Use the following information from our uploaded document on social engineering susceptibility:
+
+    {pdf_content}
+
+    Now, analyze the following conversation for signs of social engineering susceptibility,
+    using the factors and insights from the document above.
 
     Conversation:
     {conversation}
 
-    Provide a detailed analysis of the user's susceptibility to social engineering based on this conversation.
-    """
-    
-    result = rag_system({"query": analysis_prompt})
-    return result["result"]
+    Provide a detailed report including:
+    1. Analysis of the conversation, with specific examples for each susceptibility factor mentioned in the document
+    2. An overall susceptibility score (1-10, where 10 is highly susceptible)
+    3. Identification of at least 3 key language patterns or word choices in the conversation that indicate vulnerability
+    4. At least 3 psychological factors evident in the conversation that might make the user susceptible
+    5. Specific recommendations for improving resilience against social engineering attacks, based on the document insights and conversation analysis
 
-# Display chat messages
-for message in st.session_state.messages:
-    with st.chat_message(message["role"]):
-        st.write(message["content"])
+    Ensure the analysis directly relates the conversation to the specific factors and insights from the uploaded document.
+    """
+
+    # Generate the analysis using the RAG system
+    analysis_result = rag_system({"query": comprehensive_analysis_prompt})["result"]
+
+    return analysis_result
 
 # Chat input
 user_input = st.chat_input("Type your message here...")
@@ -152,6 +160,12 @@ if user_input:
     with st.chat_message("assistant"):
         st.write(ai_response)
 
+# Display chat messages
+for message in st.session_state.messages:
+    with st.chat_message(message["role"]):
+        st.write(message["content"])
+
+
 # Sidebar for additional controls ------------------------------------------------------------------------------
 with st.sidebar:
     st.title("Chat Controls")
@@ -160,15 +174,6 @@ with st.sidebar:
             {"role": "assistant", "content": "Hello There! How are you doing today?"}
         ]
         st.rerun()
-
-# # Conversation summary button
-#     st.subheader("Conversation Summary")
-#     if st.button("Summarize Conversation"):
-#         if len(st.session_state.messages) > 1:
-#             summary = summarize_conversation(st.session_state.messages)
-#             st.text_area("Summary", summary, height=200)
-#         else:
-#             st.warning("Not enough conversation to summarize yet.")
 
 # PDF upload for RAG
     uploaded_file = st.file_uploader("Upload a PDF", type="pdf")
@@ -185,7 +190,8 @@ with st.sidebar:
         if len(st.session_state.messages) > 1 and st.session_state.rag_system:
             conversation = "\n".join([f"{m['role']}: {m['content']}" for m in st.session_state.messages])
             analysis = analyze_conversation(conversation, st.session_state.rag_system)
-            st.text_area("Analysis Result", analysis, height=200)
+            # st.text_area("Analysis Result", analysis, height=200)
+            st.markdown(analysis)
         elif not st.session_state.rag_system:
             st.warning("Please upload a PDF to initialize the RAG system.")
         else:
