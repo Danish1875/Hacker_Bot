@@ -121,7 +121,7 @@ def initialize_rag(pdf_path):
     pdf_loader = PyPDFLoader(pdf_path)
     pages = pdf_loader.load_and_split()
     
-    text_splitter = RecursiveCharacterTextSplitter(chunk_size=10000, chunk_overlap=1000)
+    text_splitter = RecursiveCharacterTextSplitter(chunk_size=4000, chunk_overlap=500)
     context = "\n\n".join(str(p.page_content) for p in pages)
     texts = text_splitter.split_text(context)
     
@@ -135,7 +135,11 @@ def initialize_rag(pdf_path):
 
 # Function to analyze conversation for social engineering susceptibility
 def analyze_conversation(conversation, rag_system):
-    # First, extract key information from the PDF
+    # Extract only the user messages from the conversation
+    user_messages = [msg for msg in conversation if msg["role"] == "user"]
+    user_conversation = "\n".join([f"User: {msg['content']}" for msg in user_messages])
+    
+    # Extract key information from the Datasource(PDF)
     pdf_query = "Summarize the key factors that indicate susceptibility to social engineering attacks from this attached document."
     pdf_content = rag_system({"query": pdf_query})["result"]
 
@@ -145,20 +149,21 @@ def analyze_conversation(conversation, rag_system):
 
     {pdf_content}
 
-    Now, analyze the following conversation for signs of social engineering susceptibility,
-    using the factors and insights from the document above.
+    Now, analyze user's response to the following conversation for signs of social engineering susceptibility,
+    using the factors and insights from the document above. Focus and analyze the user's responses,
+    and see how deceiving the AI's messages are.
 
     Conversation:
-    {conversation}
+    {user_conversation}
 
     Provide a detailed report including:
-    1. Analysis of the conversation, with specific examples for each susceptibility factor mentioned in the document
-    2. An overall susceptibility score (1-10, where 10 is highly susceptible)
+    1. An overall susceptibility score (1-10, where 10 is highly susceptible). Explain the calculation of the results from the document
+    2. Analysis of the conversation, with specific examples for each susceptibility factor mentioned in the document
     3. Identification of at least 3 key language patterns or word choices in the conversation that indicate vulnerability
     4. At least 3 psychological factors evident in the conversation that might make the user susceptible
     5. Specific recommendations for improving resilience against social engineering attacks, based on the document insights and conversation analysis
 
-    Ensure the analysis directly relates the conversation to the specific factors and insights from the uploaded document.
+    Ensure the analysis directly relates the user's messages to the specific factors and insights from the uploaded document.
     """
 
     # Generate the analysis using the RAG system
