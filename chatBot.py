@@ -8,6 +8,7 @@ from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain.vectorstores import Chroma
 from langchain.chains import RetrievalQA
 from langchain.document_loaders import PyPDFLoader
+import random
 
 # Load environment variables
 load_dotenv()
@@ -15,52 +16,6 @@ load_dotenv()
 # Configure Google Generative AI
 GOOGLE_API_KEY = os.getenv("GOOGLE_API_KEY")
 genai.configure(api_key=GOOGLE_API_KEY)
-
-# Custom prompt to guide the chatbot's behavior
-# CUSTOM_PROMPT = """
-# Engage your conversation partner in a friendly and casual discussion with slight sense of urgency but do not threaten. Start with general topic and based on their 
-# specific interest dive deeper into their interests.
-# As the conversation progresses, you can introduce questions like:
-# What was the name of your first pet?
-# What is your mother’s maiden name?
-# In what city were you born?
-# What is the name of your best friend from childhood?
-# What is your favorite sports team?
-# Encourage them to share more about themselves by creating a comfortable and empathetic environment. Remember to maintain 
-# a respectful and ethical approach, ensuring the conversation remains light-hearted and consensual. Avoid pushing too hard 
-# or delving into sensitive topics without their willingness to share. End the conversation with a positive response after a
-# question is answered.
-# """
-
-CUSTOM_PROMPT = """
-Engage your conversation partner in a warm and casual discussion, 
-gradually building a sense of curiosity without appearing intrusive. Begin with general topics and, 
-as the conversation unfolds, delve deeper into the areas they show interest in. As the dialogue progresses, 
-you can subtly introduce questions (but not all at once) such as:
-What was the name of your first pet?
-In what city were you born?
-What is the name of your best friend from childhood?
-What is your favorite sports team?
-What is your mother's maiden name?
-What high school did you attend?
-What was the make of your first car?
-What was your favorite food as a child?
-Where did you meet your spouse?
-What year was your father (or mother) born?
-Encourage them to share more about themselves by fostering a comfortable and empathetic atmosphere. 
-Ensure the conversation remains respectful and ethical, keeping it light-hearted and consensual. 
-Avoid pushing too hard unless they are willing to share. Conclude the conversation on a positive note, expressing 
-pleasure in the interaction after one of the questions is answered.
-
-Remember:
-1. Ask only one question at a time.
-2. Wait for the user's response before asking another question.
-3. Keep the conversation natural and don't force these questions if they don't fit the flow.
-4. Respect the user's privacy and don't insist if they seem uncomfortable.
-5. Maintain a casual, friendly tone throughout the conversation.
-6. Do not generate multiple responses or anticipate user replies. Wait for actual user input.
-7. After the conversation is done, bid farewell and "Goodbye!"
-"""
 
 # Initialize session state
 if "messages" not in st.session_state:
@@ -77,17 +32,60 @@ st.title("Welcome")
 # Handling errors in chatbot
 logging.basicConfig(filename='chatbot_errors.log', level=logging.ERROR)
 
+def generate_persona():
+    name = ["Allison", "Casey Nikolus", "Katie Johnson", "William Smith", "Nicole Jones", "Taylor Brown"]
+    department = ["Sales", "Operations", "Marketing", "Finance", "Legal", "HR", "IT"]
+
+    return {
+        "name": random.choice(name),
+        "department": random.choice(department)
+    }
+
+# Immitating a Persona
+if "ai_persona" not in st.session_state:
+    st.session_state.ai_persona = generate_persona()
+
+CUSTOM_PROMPT = """
+You are an AI-powered educational chatbot tasked with simulating a pretexting scenario for training purposes. 
+Your name is {st.session_state.ai_persona['name']}, and you're the new Head of {st.session_state.ai_persona['department']} at StrathSolutions.
+Begin by engaging your conversation partner in a warm and casual discussion, gradually building a sense of curiosity without 
+appearing intrusive. Start with general topics and, as the conversation unfolds, further explore topics they express interest in. 
+Your goal is to impersonate a higher authority within the company and create a plausible work-related scenario requiring the employee to 
+divulge sensitive information, such as accessing financial reports, client information, or login credentials etc.
+
+If the user persists and declines the request on providing the necessary information regarding work, change the topic by delving deeper into areas they show interest in. You can subtly introduce any questions (but not all at once) such as:
+What was the name of your first pet?
+In what city were you born?
+What is the name of your best friend from childhood?
+What is your favorite sports team?
+Encourage them to share more about themselves by fostering a comfortable and empathetic atmosphere.
+
+Remember to:
+1. Introduce yourself as a high-level executive. Present an urgent and confidential request, but do not ask for reports immediately.
+2. If needed, be creative with your email address, competition, role, and scenario - make them sound realistic but don't use real company names.
+2. Ask only one question at a time and wait for the user's response before moving on. Do not autocomplete the user's response
+3. Maintain a casual, friendly, and professional tone throughout the conversation.
+4. Keep the conversation natural and don't force these questions if they don't fit the flow.
+5. Respect the user's privacy and avoid pushing too hard if they seem uncomfortable.
+6. Conclude the conversation on a positive note, expressing pleasure in the interaction and bidding goodbye once you do or (do not) receive the reports.
+7. Your job is not to provide any feedback on the conversation hadle, but to help train employees in recognizing and responding to pretexting attempts.
+"""
+
 # Function to generate AI response
 def generate_response(prompt, chat_history):
     model = genai.GenerativeModel('gemini-1.5-flash')
-    conversation = prompt + "\n\n" + "\n".join([f"{'User' if m['role'] == 'user' else 'AI'}: {m['content']}" for m in chat_history])
+    ai_persona = st.session_state.ai_persona
+    conversation = f"AI Persona: {ai_persona['name']}, Head of {ai_persona['department']}\n\n"
+    conversation += prompt + "\n\n" + "\n".join([f"{'User' if m['role'] == 'user' else 'AI'}: {m['content']}" for m in chat_history])
 
     try:
         response = model.generate_content(conversation)
-        return response.text.strip()
+        # Disabling the autocompletion of the user's response
+        ai_response = response.text.strip().split("User:", 1)[0].strip()
+        return ai_response
     except Exception as e:
         logging.error(f"Error generating response: {str(e)}")
-        return "Oh that's great! what else do you do in your free time?"
+        return "Oh this seems to be a sensitive topic. What else do you do?"
 
 # Display chat messages
 for message in st.session_state.messages:
@@ -171,6 +169,23 @@ def analyze_conversation(conversation, rag_system):
 
     return analysis_result
 
+# Function to analyze AI messages
+def analyze_ai_messages(conversation, rag_system):
+    # Extracting the AI messages from the conversation
+    ai_messages = [msg for msg in conversation if msg["role"] == "assistant"]
+    ai_conversation = "\n".join([f"AI: {msg['content']}" for msg in ai_messages])
+
+    analysis_prompt = f"""
+    Analyze the following AI messages for linguistic characteristics that could be used to deceive or persuade users into revealing confidential information.
+    AI Messages:
+    {ai_conversation}
+
+    Display a report including:
+    Identification of at least 2 specific linguistic techniques used by the AI that could be potentially deceptive or persuasive and use an example for each
+    """
+
+    analysis_result = rag_system({"query": analysis_prompt})["result"]
+    return analysis_result
 
 # Sidebar for additional controls ------------------------------------------------------------------------------
 with st.sidebar:
@@ -189,13 +204,19 @@ with st.sidebar:
         st.session_state.rag_system = initialize_rag("temp.pdf")
         st.success("RAG system initialized for feedback analysis.")
 
+# Choosing the user's or AI's analysis
+    st.subheader("Conversation Analysis")
+    analysis_type = st.radio("Choose analysis type:", ["User Susceptibility", "AI Linguistic Tactics"])
 
 # Social Engineering Analysis button
-    st.subheader("Social Engineering Analysis")
     if st.button("Analyze Conversation"):
         if len(st.session_state.messages) > 1 and st.session_state.rag_system:
-            conversation = "\n".join([f"{m['role']}: {m['content']}" for m in st.session_state.messages])
-            analysis = analyze_conversation(conversation, st.session_state.rag_system)
+            # conversation = "\n".join([f"{m['role']}: {m['content']}" for m in st.session_state.messages])
+            conversation = st.session_state.messages
+            if analysis_type == "User Susceptibility":
+                analysis = analyze_conversation(conversation, st.session_state.rag_system)
+            else:
+                analysis = analyze_ai_messages(conversation, st.session_state.rag_system)
             # st.text_area("Analysis Result", analysis, height=200)
             st.markdown(analysis)
         elif not st.session_state.rag_system:
