@@ -26,8 +26,7 @@ if "messages" not in st.session_state:
         {"role": "assistant", "content": "Hello There! How are you doing today?"}
     ]
 
-if "rag_system" not in st.session_state:
-    st.session_state.rag_system = None
+
 
 # Streamlit app
 st.title("Welcome")
@@ -65,7 +64,7 @@ Encourage them to share more about themselves by fostering a comfortable and emp
 
 Remember to:
 1. Introduce yourself as a high-level executive. Present an urgent and confidential request, but do not ask for reports immediately.
-2. If needed, be creative with your email address, competition, role, and scenario - make them sound realistic but don't use real company names.
+2. Be creative by inserting your own email address, competition, role, and scenario (If required) - make them sound realistic but don't use real company names.
 2. Ask only one question at a time and wait for the user's response before moving on. Do not autocomplete the user's response
 3. Maintain a casual, friendly, and professional tone throughout the conversation.
 4. Keep the conversation natural and don't force these questions if they don't fit the flow.
@@ -118,11 +117,12 @@ if user_input:
 
 # Function to initialize RAG system
 @st.cache_resource
-def initialize_rag(pdf_path):
+def initialize_rag():
+    pdf_path = "Data_Analyze.pdf"
     pdf_loader = PyPDFLoader(pdf_path)
     pages = pdf_loader.load_and_split()
     
-    text_splitter = RecursiveCharacterTextSplitter(chunk_size=4000, chunk_overlap=500)
+    text_splitter = RecursiveCharacterTextSplitter(chunk_size=5000, chunk_overlap=500)
     context = "\n\n".join(str(p.page_content) for p in pages)
     texts = text_splitter.split_text(context)
     
@@ -133,6 +133,10 @@ def initialize_rag(pdf_path):
     qa_chain = RetrievalQA.from_chain_type(model, retriever=vector_index, return_source_documents=True)
     
     return qa_chain
+
+# Session state for RAG system
+if "rag_system" not in st.session_state:
+    st.session_state.rag_system = initialize_rag()
 
 # Function to analyze conversation for social engineering susceptibility
 def analyze_conversation(conversation, rag_system):
@@ -199,13 +203,13 @@ with st.sidebar:
         ]
         st.rerun()
 
-# PDF upload for RAG
-    uploaded_file = st.file_uploader("Upload a PDF", type="pdf")
-    if uploaded_file is not None:
-        with open("temp.pdf", "wb") as f:
-            f.write(uploaded_file.getbuffer())
-        st.session_state.rag_system = initialize_rag("temp.pdf")
-        st.success("RAG system initialized for feedback analysis.")
+# # PDF upload for RAG
+#     uploaded_file = st.file_uploader("Upload a PDF", type="pdf")
+#     if uploaded_file is not None:
+#         with open("temp.pdf", "wb") as f:
+#             f.write(uploaded_file.getbuffer())
+#         st.session_state.rag_system = initialize_rag("temp.pdf")
+#         st.success("RAG system initialized for feedback analysis.")
 
 # Choosing the user's or AI's analysis
     st.subheader("Conversation Analysis")
