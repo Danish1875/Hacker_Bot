@@ -226,7 +226,5 @@ with st.sidebar:
                 analysis = analyze_ai_messages(conversation, st.session_state.rag_system)
             # st.text_area("Analysis Result", analysis, height=200)
             st.markdown(analysis)
-        elif not st.session_state.rag_system:
-            st.warning("Please upload a PDF to initialize the RAG system.")
         else:
             st.warning("Not enough conversation to analyze yet.")
