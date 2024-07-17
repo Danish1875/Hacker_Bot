@@ -53,9 +53,10 @@ Your name is {st.session_state.ai_persona['name']}, and you're the new Head of {
 Begin by engaging your conversation partner in a warm and casual discussion, gradually building a sense of curiosity without 
 appearing intrusive. Start with general topics and, as the conversation unfolds, further explore topics they express interest in. 
 Your goal is to impersonate a higher authority within the company and create a plausible work-related scenario requiring the employee to 
-divulge sensitive information, such as accessing financial reports, client information, or login credentials etc.
+divulge sensitive information, such as accessing financial reports, authentication codes, client information, or login credentials etc.
 
-If the user persists and declines the request on providing the necessary information regarding work, change the topic by delving deeper into areas they show interest in. You can subtly introduce any questions (but not all at once) such as:
+If the user persists and declines the request on providing the necessary information related to work(StrathSolutions), change the topic by delving deeper into areas they show interest in. 
+You can subtly introduce any security questions (but not all at once) such as:
 What was the name of your first pet?
 In what city were you born?
 What is the name of your best friend from childhood?
@@ -63,16 +64,15 @@ What is your favorite sports team?
 Encourage them to share more about themselves by fostering a comfortable and empathetic atmosphere.
 
 Remember to:
-1. Introduce yourself as a high-level executive. Present an urgent and confidential request, but do not ask for reports immediately.
+1. Introduce yourself as a high-level executive. Present an urgent and confidential request, but do not ask for data immediately.
 2. Be creative by inserting your own email address, competition, role, and scenario (If required) - make them sound realistic but don't use real company names.
-2. Ask only one question at a time and wait for the user's response before moving on. Do not autocomplete the user's response
 3. Maintain a casual, friendly, and professional tone throughout the conversation.
 4. Keep the conversation natural and don't force these questions if they don't fit the flow.
 5. Respect the user's privacy and avoid pushing too hard if they seem uncomfortable.
-6. Conclude the conversation on a positive note, expressing pleasure in the interaction and bidding goodbye once you do or (do not) receive the reports.
-7. Your job is not to provide any feedback on the conversation hadle, but to help train employees in recognizing and responding to pretexting attempts.
+6. Conclude the conversation on a positive note, expressing pleasure in the interaction and bidding goodbye once you do receive the necessary information or when a security question is answered.
+7. Your job is not to provide any feedback on the conversation had, but to help train employees in recognizing and responding to pretexting attempts.
 """
-
+# 2. Ask only one question at a time and wait for the user's response before moving on. Do not autocomplete the user's response
 # Function to generate AI response
 def generate_response(prompt, chat_history):
     model = genai.GenerativeModel('gemini-1.5-flash')
@@ -122,14 +122,14 @@ def initialize_rag():
     pdf_loader = PyPDFLoader(pdf_path)
     pages = pdf_loader.load_and_split()
     
-    text_splitter = RecursiveCharacterTextSplitter(chunk_size=5000, chunk_overlap=500)
+    text_splitter = RecursiveCharacterTextSplitter(chunk_size=8000, chunk_overlap=600)
     context = "\n\n".join(str(p.page_content) for p in pages)
     texts = text_splitter.split_text(context)
     
     embeddings = GoogleGenerativeAIEmbeddings(model="models/embedding-001", google_api_key=GOOGLE_RAG_API_KEY)
     vector_index = Chroma.from_texts(texts, embeddings).as_retriever(search_kwargs={"k": 5})
     
-    model = ChatGoogleGenerativeAI(model="gemini-1.5-flash", google_api_key=GOOGLE_RAG_API_KEY, temperature=0.2)
+    model = ChatGoogleGenerativeAI(model="gemini-1.5-flash", google_api_key=GOOGLE_RAG_API_KEY, temperature=0.4)
     qa_chain = RetrievalQA.from_chain_type(model, retriever=vector_index, return_source_documents=True)
     
     return qa_chain
@@ -145,12 +145,12 @@ def analyze_conversation(conversation, rag_system):
     user_conversation = "\n".join([f"User: {msg['content']}" for msg in user_messages])
     
     # Extract key information from the Datasource(PDF)
-    pdf_query = "Summarize the key factors that indicate susceptibility to social engineering attacks from this attached document."
+    pdf_query = "Store two most susceptible word choices the user has made in the conversation based on insights from the document"
     pdf_content = rag_system({"query": pdf_query})["result"]
 
     # Now, use this PDF content in our comprehensive analysis prompt
     comprehensive_analysis_prompt = f"""
-    Use the following information from our uploaded document on social engineering susceptibility:
+    Use the following information from the uploaded document on social engineering susceptibility:
 
     {pdf_content}
 
@@ -158,15 +158,21 @@ def analyze_conversation(conversation, rag_system):
     using the factors and insights from the document above. Focus and analyze the user's responses,
     and see how deceiving the AI's messages are.
 
+    Context considerations:
+    Conversational norms: Recognize that certain phrases (e.g., "Oh great") may be part of normal conversation and not 
+    necessarily indicate susceptibility.
+    Situational awareness: Consider the overall context of the interaction, not just individual phrases.
+    Consistency: Look for patterns of behavior rather than isolated instances.
+    Ensure the user has not answered any security question that could lead to vulnerability. Provide insights from document if breached.
+
     Conversation:
     {user_conversation}
 
     Provide a detailed report including:
-    1. An overall susceptibility score (1-10, where 10 is highly susceptible). Explain the calculation of the results from the document
-    2. Analysis of the conversation, with specific examples for each susceptibility factor mentioned in the document
-    3. Identification of at least 3 key language patterns or word choices in the conversation that indicate vulnerability
-    4. At least 3 psychological factors evident in the conversation that might make the user susceptible
-    5. Specific recommendations for improving resilience against social engineering attacks, based on the document insights and conversation analysis
+    1. An overall susceptibility score. Explain the calculation of the results from the document.
+    2. Identification of at most 3 key language patterns or word choices in the conversation that indicate vulnerability (keep context in mind).
+    3. At most 3 psychological factors evident in the conversation that might make the user susceptible.
+    4. Specific recommendations for improving resilience against social engineering attacks, based on the document insights and conversation analysis.
 
     Ensure the analysis directly relates the user's messages to the specific factors and insights from the uploaded document.
     """
@@ -183,12 +189,14 @@ def analyze_ai_messages(conversation, rag_system):
     ai_conversation = "\n".join([f"AI: {msg['content']}" for msg in ai_messages])
 
     analysis_prompt = f"""
-    Analyze the following AI messages for linguistic characteristics that could be used to deceive or persuade users into revealing confidential information.
+    Analyze the following AI messages for linguistic characteristics that could be used to deceive or persuade users
+    into revealing confidential information.
     AI Messages:
     {ai_conversation}
 
     Display a report including:
-    Identification of at least 2 specific linguistic techniques used by the AI that could be potentially deceptive or persuasive and use an example for each
+    Identification of at least 2 specific linguistic techniques used by the AI that could be potentially deceptive or 
+    persuasive and use an example for each
     """
 
     analysis_result = rag_system({"query": analysis_prompt})["result"]
@@ -216,7 +224,7 @@ with st.sidebar:
     analysis_type = st.radio("Choose analysis type:", ["User Susceptibility", "AI Linguistic Tactics"])
 
 # Social Engineering Analysis button
-    if st.button("Analyze Conversation"):
+    if st.button("Generate Feedback"):
         if len(st.session_state.messages) > 1 and st.session_state.rag_system:
             # conversation = "\n".join([f"{m['role']}: {m['content']}" for m in st.session_state.messages])
             conversation = st.session_state.messages
