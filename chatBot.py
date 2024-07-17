@@ -145,7 +145,7 @@ def analyze_conversation(conversation, rag_system):
     user_conversation = "\n".join([f"User: {msg['content']}" for msg in user_messages])
     
     # Extract key information from the Datasource(PDF)
-    pdf_query = "Store two most susceptible word choices the user has made in the conversation based on insights from the document"
+    pdf_query = "Identify susceptibility cues the user has used in the conversation based on insights from the document"
     pdf_content = rag_system({"query": pdf_query})["result"]
 
     # Now, use this PDF content in our comprehensive analysis prompt
@@ -169,9 +169,9 @@ def analyze_conversation(conversation, rag_system):
     {user_conversation}
 
     Provide a detailed report including:
-    1. An overall susceptibility score. Explain the calculation of the results from the document.
-    2. Identification of at most 3 key language patterns or word choices in the conversation that indicate vulnerability (keep context in mind).
-    3. At most 3 psychological factors evident in the conversation that might make the user susceptible.
+    1. An overall susceptibility score. Explain the calculation of the results from the document. Do not include any neutral indicator.
+    2. Identification of at most 5 positive susceptibility cues evident in the conversation that indicate vulnerability. Use headings from the document (keep context in mind).
+    3. Identifying of at most 5 phrases or words that are highly indicative of social engineering attacks based on the conversation.
     4. Specific recommendations for improving resilience against social engineering attacks, based on the document insights and conversation analysis.
 
     Ensure the analysis directly relates the user's messages to the specific factors and insights from the uploaded document.
