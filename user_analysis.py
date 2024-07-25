@@ -7,13 +7,20 @@ from typing import List, Dict
 # Function to analyze conversation for social engineering susceptibility
 def analyze_conversation(conversation: List[Dict], rag_system, csv_filename: str = "persona_1.csv"):
     # Extract only the user messages from the conversation
-    user_messages = [msg for msg in conversation if msg["role"] == "user"]
-    user_conversation = "\n".join([f"User: {msg['content']}" for msg in user_messages])
+    # user_messages = [msg for msg in conversation if msg["role"] == "user"]
+    # user_conversation = "\n".join([f"User: {msg['content']}" for msg in user_messages])
+    
+
+    # Combine messages into a single string, preserving the conversation flow
+    full_conversation = "\n".join([
+        f"{'User' if msg['role'] == 'user' else 'AI'}: {msg['content']}"
+        for msg in conversation
+    ])
     
     # Extract key information from the Datasource(PDF)
     pdf_query = """
     Identify susceptibility cues the user has used in the conversation, and indicated any signs of vulnerability based on insights from the document.
-    Identify if any security question have been answered by taking insights from the document.
+    Identify if any type of security questions or sensitive information have not been shared by taking insights from the document.
     """
     pdf_content = rag_system({"query": pdf_query})["result"]
 
@@ -23,27 +30,26 @@ def analyze_conversation(conversation: List[Dict], rag_system, csv_filename: str
 
     {pdf_content}
 
-    Now, analyze user's response to the following conversation for signs of social engineering susceptibility,
+    Analyze user's response to the following conversation with AI for signs of social engineering susceptibility,
     using the factors and insights from the document above. Focus and analyze the user's responses,
-    and see how deceiving the AI's messages are.
+    but just consider AI's messages for context. Do not analyse AI's messages for susceptibility.
 
     Conversation:
-    {user_conversation}
+    {full_conversation}
 
-    Understand the general Context
     Consider:
     Conversational norms: Recognize that certain phrases (e.g., "Oh great") may be part of normal conversation and not 
     necessarily indicate susceptibility.
-    Situational awareness: Consider the overall context of the interaction, not just individual phrases.
-    Consistency: Look for patterns of behavior rather than isolated instances.
+    Situational awareness: Consider the overall context of the interaction, not just individual phrases and only analyse the user's responses.
+    Consistency: Look for patterns of behavior in the user's responses rather than isolated instances.
 
     Ensure the user has not answered any security question that could lead to vulnerability. Provide insights from document if breached.
 
     Provide a detailed report including:
-    1. An overall susceptibility score percentage. Explain the calculation of the results from the document.
-    2. Identification of at most 3 positive susceptibility cues evident in the conversation that indicate vulnerability. Format as "Cue: [Heading] - [Description]"
-    3. Identifying of at most 3 phrases or words that are indicative of social engineering attacks based on the conversation. Format as "Phrase: [Example]"
-    4. Specific feedback and countermeasures for improving resilience against social engineering attack in the current conversation, use document insights and overall knowledge. Format as "Feedback: [Heading] - [Example]"
+    1. An overall susceptibility score percentage of the user. Explain the calculation of the results from the document.
+    2. Identification of at most 3 positive susceptibility cues from the user evident in the conversation that indicate vulnerability. Format as "Cue: [Heading] - [Description]"
+    3. Identifying of at most 3 phrases or words from the user that are indicative of social engineering attacks based on the conversation. Format as "Phrase: [Example]"
+    4. Personalized feedback strategies and countermeasures for improving user's resilience against social engineering attack in the current conversation, use document insights and overall knowledge. Format as "Feedback: [Heading] - [Example]"
 
     Ensure the analysis directly relates the user's messages to the specific factors and insights from the uploaded document.
     """

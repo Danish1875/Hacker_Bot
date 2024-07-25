@@ -10,9 +10,9 @@ from langchain.chains import RetrievalQA
 from langchain.document_loaders import PyPDFLoader
 
 # Importing necessary components of the chatbot
+from chatbot_tone import generate_persona, CUSTOM_PROMPT
 from user_analysis import analyze_conversation
 from ai_analysis import analyze_ai_messages
-from chatbot_tone import generate_persona, CUSTOM_PROMPT
 
 # Load environment variables
 load_dotenv()
