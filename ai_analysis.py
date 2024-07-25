@@ -16,7 +16,7 @@ def analyze_ai_messages(conversation: List[Dict], rag_system, csv_filename: str 
     AI Messages:
     {ai_conversation}
 
-    Identify the top 2 most deceptive or persuasive techniques used by the AI a one line example from the conversation for each. 
+    Identify the top 3 most deceptive or persuasive techniques used by the AI, give a one line example from the conversation for each. 
  
     """
 
