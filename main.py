@@ -127,4 +127,4 @@ with st.sidebar:
                 analysis = analyze_ai_messages(conversation, st.session_state.rag_system)
             st.markdown(analysis)
         else:
-            st.warning("Not enough conversation to analyze yet.")
+            st.warning("Not enough conversation to analyse yet.")
