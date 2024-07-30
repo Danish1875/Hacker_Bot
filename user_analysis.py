@@ -4,14 +4,14 @@ import os
 import io
 from typing import List, Dict
 
-# Function to analyze conversation for social engineering susceptibility
-def analyze_conversation(conversation: List[Dict], rag_system, csv_filename: str = "persona_1.csv"):
-    # Extract only the user messages from the conversation
-    # user_messages = [msg for msg in conversation if msg["role"] == "user"]
-    # user_conversation = "\n".join([f"User: {msg['content']}" for msg in user_messages])
-    
+def user_increment_conversationID():
+    last_conversation_id = 0
+    last_conversation_id += 1
+    return last_conversation_id
 
-    # Combine messages into a single string, preserving the conversation flow
+# Function to analyze conversation for social engineering susceptibility
+def analyze_conversation(conversation: List[Dict], rag_system, csv_filename: str = "New_hire.csv"):
+ # Combine messages into a single string, preserving the conversation flow
     full_conversation = "\n".join([
         f"{'User' if msg['role'] == 'user' else 'AI'}: {msg['content']}"
         for msg in conversation
@@ -47,14 +47,17 @@ def analyze_conversation(conversation: List[Dict], rag_system, csv_filename: str
 
     Provide a detailed report including:
     1. An overall susceptibility score percentage of the user. Explain the calculation of the results from the document.
-    2. Identification of at most 3 positive susceptibility cues from the user evident in the conversation that indicate vulnerability. Format as "Cue: [Heading] - [Description]"
-    3. Identifying of at most 3 phrases or words from the user that are indicative of social engineering attacks based on the conversation. Format as "Phrase: [Example]"
-    4. Personalized feedback strategies and countermeasures for improving user's resilience against social engineering attack in the current conversation, use document insights and overall knowledge. Format as "Feedback: [Heading] - [Example]"
+    2. Identification of at most 3 positive susceptibility cues from the user evident in the conversation that indicate vulnerability. 
+    Format as "Cue: [Heading] - [Description]"
+    3. Identifying of at most 3 phrases or words from the user that are indicative of social engineering attacks based on the conversation. 
+    Format as "Phrase: [Example]"
+    4. Personalized feedback strategies and countermeasures for improving user's resilience against social engineering attack in the current conversation, 
+    use document insights and overall knowledge. Format as "Feedback: [Heading] - [Example]"
 
     Ensure the analysis directly relates the user's messages to the specific factors and insights from the uploaded document.
     """
 
-    # Generate the analysis using the RAG system
+    # Generates the analysis using the RAG system
     analysis_result = rag_system({"query": comprehensive_analysis_prompt})["result"]
 
     # Parsing the analysis result
@@ -65,14 +68,13 @@ def analyze_conversation(conversation: List[Dict], rag_system, csv_filename: str
     susceptibility_cues = susceptibility_cues[:3]
 
     phrases = re.findall(r'Phrase:\s*(.*?)(?=\n|$)', analysis_result)
-    # phrases = re.findall(r'"([^"]*)"', analysis_result)
     phrases = phrases[:3] 
 
     feedback = re.findall(r'Feedback:\s*(.*?)(?=\n|$)', analysis_result)
     feedback = feedback[:2]
 
     # unique ID for the conversation
-    Userconversation_ID = f"conversation_{len(conversation)}"
+    conversation_id = user_increment_conversationID()
 
     # Append the result to the CSV file
     fieldnames = ['Conversation_ID', 'Positive_Susceptibility_Cues', 'Phrases', 'Susceptibility_Score', 'Feedback']
@@ -87,7 +89,7 @@ def analyze_conversation(conversation: List[Dict], rag_system, csv_filename: str
             writer.writeheader()
 
         writer.writerow({
-            'Conversation_ID': Userconversation_ID,
+            'Conversation_ID': conversation_id,
             'Positive_Susceptibility_Cues': ';'.join(susceptibility_cues),
             'Phrases': ';'.join(phrases),
             'Susceptibility_Score': susceptibility_score,
