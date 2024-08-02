@@ -24,7 +24,7 @@ def analyze_conversation(conversation: List[Dict], rag_system, csv_filename: str
     """
     pdf_content = rag_system({"query": pdf_query})["result"]
 
-    # Now, use this PDF content in our comprehensive analysis prompt
+    # Now, use this PDF content in the comprehensive analysis prompt
     comprehensive_analysis_prompt = f"""
     Use the following information from the uploaded document on social engineering susceptibility:
 
@@ -60,7 +60,7 @@ def analyze_conversation(conversation: List[Dict], rag_system, csv_filename: str
     # Generates the analysis using the RAG system
     analysis_result = rag_system({"query": comprehensive_analysis_prompt})["result"]
 
-    # Parsing the analysis result
+    # Parsing the analysis result using regular expressions
     susceptibility_score = re.search(r'(\d+(?:\.\d+)?)%', analysis_result)
     susceptibility_score = float(susceptibility_score.group(1)) if susceptibility_score else 0
 
