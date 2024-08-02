@@ -84,7 +84,7 @@ if user_input:
 # Function to initialize RAG system
 @st.cache_resource
 def initialize_rag():
-    pdf_path = "Data_Analyze.pdf"
+    pdf_path = "Knowledgebase.pdf"
     pdf_loader = PyPDFLoader(pdf_path)
     pages = pdf_loader.load_and_split()
     
@@ -92,7 +92,7 @@ def initialize_rag():
     context = "\n\n".join(str(p.page_content) for p in pages)
     texts = text_splitter.split_text(context)
     
-    embeddings = GoogleGenerativeAIEmbeddings(model="models/embedding-001", google_api_key=GOOGLE_RAG_API_KEY)
+    embeddings = GoogleGenerativeAIEmbeddings(model="models/text-embedding-004", google_api_key=GOOGLE_RAG_API_KEY)
     vector_index = Chroma.from_texts(texts, embeddings).as_retriever(search_kwargs={"k": 5})
     
     model = ChatGoogleGenerativeAI(model="gemini-1.5-flash", google_api_key=GOOGLE_RAG_API_KEY, temperature=0.3)
