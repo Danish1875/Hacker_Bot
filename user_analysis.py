@@ -4,13 +4,8 @@ import os
 import io
 from typing import List, Dict
 
-def user_increment_conversationID():
-    last_conversation_id = 0
-    last_conversation_id += 1
-    return last_conversation_id
-
 # Function to analyze conversation for social engineering susceptibility
-def analyze_conversation(conversation: List[Dict], rag_system, csv_filename: str = "New_hire.csv"):
+def analyze_conversation(conversation: List[Dict], rag_system, conversation_id: int, csv_filename: str = "New_hire.csv"):
  # Combine messages into a single string, preserving the conversation flow
     full_conversation = "\n".join([
         f"{'User' if msg['role'] == 'user' else 'AI'}: {msg['content']}"
@@ -72,9 +67,6 @@ def analyze_conversation(conversation: List[Dict], rag_system, csv_filename: str
 
     feedback = re.findall(r'Feedback:\s*(.*?)(?=\n|$)', analysis_result)
     feedback = feedback[:2]
-
-    # unique ID for the conversation
-    conversation_id = user_increment_conversationID()
 
     # Append the result to the CSV file
     fieldnames = ['Conversation_ID', 'Positive_Susceptibility_Cues', 'Phrases', 'Susceptibility_Score', 'Feedback']

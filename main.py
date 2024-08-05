@@ -78,6 +78,16 @@ if user_input:
     with st.chat_message("assistant"):
         st.write(ai_response)
 
+# Initialize session state for conversation id if none exists
+if 'conversation_id' not in st.session_state:
+    st.session_state.conversation_id = 0
+
+# Function to generate conversation id
+def get_conversation_id():
+    if st.session_state.conversation_id == 0:
+        st.session_state.conversation_id = st.session_state.get('conversation_id', 0) + 1
+    return st.session_state.conversation_id
+
 # Function to initialize RAG system
 @st.cache_resource
 def initialize_rag():
@@ -118,10 +128,11 @@ with st.sidebar:
     if st.button("Generate Feedback"):
         if len(st.session_state.messages) > 1 and st.session_state.rag_system:
             conversation = st.session_state.messages
+            conversation_id = get_conversation_id()
             if analysis_type == "User Susceptibility":
-                analysis = analyze_conversation(conversation, st.session_state.rag_system)
+                analysis = analyze_conversation(conversation, st.session_state.rag_system, conversation_id)
             else:
-                analysis = analyze_ai_messages(conversation, st.session_state.rag_system)
+                analysis = analyze_ai_messages(conversation, st.session_state.rag_system, conversation_id)
             st.markdown(analysis)
         else:
             st.warning("Not enough conversation to analyse yet.")
