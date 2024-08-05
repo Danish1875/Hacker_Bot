@@ -18,11 +18,8 @@ from ai_analysis import analyze_ai_messages
 load_dotenv()
 
 # Configure Gemini API for the conversation
-GOOGLE_CONVERSATION_API_KEY = os.getenv("GOOGLE_CONVERSATION_API_KEY")
-genai.configure(api_key=GOOGLE_CONVERSATION_API_KEY)
-
-# Configure Google Generative AI for RAG system
-GOOGLE_RAG_API_KEY = os.getenv("GOOGLE_RAG_API_KEY")
+GOOGLE_API_KEY = os.getenv("GOOGLE_API_KEY")
+genai.configure(api_key=GOOGLE_API_KEY)
 
 # Initialize session state
 if "messages" not in st.session_state:
@@ -92,10 +89,10 @@ def initialize_rag():
     context = "\n\n".join(str(p.page_content) for p in pages)
     texts = text_splitter.split_text(context)
     
-    embeddings = GoogleGenerativeAIEmbeddings(model="models/text-embedding-004", google_api_key=GOOGLE_RAG_API_KEY)
+    embeddings = GoogleGenerativeAIEmbeddings(model="models/text-embedding-004", google_api_key=GOOGLE_API_KEY)
     vector_index = Chroma.from_texts(texts, embeddings).as_retriever(search_kwargs={"k": 5})
     
-    model = ChatGoogleGenerativeAI(model="gemini-1.5-flash", google_api_key=GOOGLE_RAG_API_KEY, temperature=0.3)
+    model = ChatGoogleGenerativeAI(model="gemini-1.5-flash", google_api_key=GOOGLE_API_KEY, temperature=0.3)
     qa_chain = RetrievalQA.from_chain_type(model, retriever=vector_index, return_source_documents=True)
     
     return qa_chain
