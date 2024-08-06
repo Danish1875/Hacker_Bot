@@ -21,7 +21,8 @@ def analyze_ai_messages(conversation: List[Dict], rag_system, conversation_id: i
 
     Analysis:
     Identify the top 3 most distinctive deceptive or persuasive techniques used by the AI, give a one line example from the conversation for each. 
- 
+    
+    Do not provide any additional notes or conclusions.
     """
     analysis_result = rag_system({"query": analysis_prompt})["result"]
     
