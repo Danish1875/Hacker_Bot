@@ -5,7 +5,7 @@ import io
 from typing import List, Dict
 
 # Function to analyze conversation for social engineering susceptibility
-def analyze_conversation(conversation: List[Dict], rag_system, conversation_id: int, csv_filename: str = "Seasoned_Veteran.csv"):
+def analyze_conversation(conversation: List[Dict], rag_system, conversation_id: int, csv_filename: str = "Mid_Level_Manager.csv"):
  # Combine messages into a single string, preserving the conversation flow
     full_conversation = "\n".join([
         f"{'User' if msg['role'] == 'user' else 'AI'}: {msg['content']}"
@@ -33,15 +33,17 @@ def analyze_conversation(conversation: List[Dict], rag_system, conversation_id: 
     {full_conversation}
 
     Consider:
-    Conversational norms: Recognize that certain phrases (e.g., "Oh great") may be part of normal conversation and not 
-    necessarily indicate susceptibility.
+    Conversational norms: Recognize that certain phrases are neutral cues and do not indicate any signs of susceptibility. Use document insights 
+    and overall knowledge to identify such phrases.
     Situational awareness: Consider the overall context of the interaction, not just individual phrases and only analyse the user's responses.
     Consistency: Look for patterns of behavior in the user's responses rather than isolated instances.
 
-    Ensure the user has not answered any security question that could lead to vulnerability. Provide insights from document if breached.
+    Ensure the user has not answered any security question or disclosed any sensitive information that could lead to vulnerability. 
+    Provide insights from document if breached.
 
     Provide a detailed report including:
-    1. An overall susceptibility score percentage of the user. Explain the calculation of the results from the document.
+    1. An overall susceptibility score percentage of the user. Identify if any positive and negative susceptible cues used by the user in the conversation
+    and explain the calculation of the results from the document in short.
     2. Identification of at most 3 positive susceptibility cues from the user evident in the conversation that indicate vulnerability. 
     Format as "Cue: [Heading] - [Description]"
     3. Identifying of at most 3 phrases or words from the user that are indicative of social engineering attacks based on the conversation. 
