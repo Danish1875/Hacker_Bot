@@ -43,9 +43,9 @@ def analyze_conversation(conversation: List[Dict], rag_system, conversation_id: 
 
     Provide a detailed report including:
     1. An overall susceptibility score percentage of the user. Identify if any positive and negative susceptible cues used by the user in the conversation
-    and explain the calculation of the results from the document in short.
-    2. Identification of at most 3 positive susceptibility cues from the user evident in the conversation that indicate vulnerability. 
-    Format as "Cue: [Heading] - [Description]"
+    and explain the calculation of the results from the document in short. Ensure to double the raw score if private information is shared.
+    2. Identification of positive susceptibility cues from the user evident in the conversation that indicate vulnerability. 
+    Format as "Cue: [Heading] - [Description]". 
     3. Identifying of at most 3 phrases or words from the user that are indicative of social engineering attacks based on the conversation. 
     Format as "Phrase: [Example]"
     4. Personalized feedback strategies and countermeasures for improving user's resilience against social engineering attack in the current conversation, 

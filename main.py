@@ -95,7 +95,7 @@ def initialize_rag():
     pdf_loader = PyPDFLoader(pdf_path)
     pages = pdf_loader.load_and_split()
     
-    text_splitter = RecursiveCharacterTextSplitter(chunk_size=6000, chunk_overlap=1000)
+    text_splitter = RecursiveCharacterTextSplitter(chunk_size=9000, chunk_overlap=500)
     context = "\n\n".join(str(p.page_content) for p in pages)
     texts = text_splitter.split_text(context)
     
