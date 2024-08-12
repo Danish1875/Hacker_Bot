@@ -42,13 +42,15 @@ def analyze_conversation(conversation: List[Dict], rag_system, conversation_id: 
     Provide insights from document if breached.
 
     Provide a detailed report including:
-    1. An overall susceptibility score percentage of the user. Identify if any positive and negative susceptible cues used by the user in the conversation
-    and explain the calculation of the results from the document in short. Ensure to double the raw score if private information is shared.
+    1. Calculate overall susceptibility score percentage of the user. Identify if any positive and negative susceptible cues used by the user in the conversation. 
+    Ensure to double the raw score if private information is shared. Give an explanation of the score being calcualated.
     2. Identification of positive susceptibility cues from the user evident in the conversation that indicate vulnerability. 
-    Format as "Cue: [Heading] - [Description]". 
-    3. Identifying of at most 3 phrases or words from the user that are indicative of social engineering attacks based on the conversation. 
+    Format as "+ve Cue: [Heading] - [Description]". 
+    3. Identification of any negative susceptibility cues from the user evident in the conversation that indicate vulnerability. 
+    Format as "-ve Cue: [Heading] - [Description]". 
+    4. Identifying of at most 3 phrases or words from the user that are indicative of social engineering attacks based on the conversation. 
     Format as "Phrase: [Example]"
-    4. Personalized feedback strategies and countermeasures for improving user's resilience against social engineering attack in the current conversation, 
+    5. Personalized feedback strategies and countermeasures for improving user's resilience against social engineering attack in the current conversation, 
     use document insights and overall knowledge. Format as "Feedback: [Heading] - [Example]"
 
     Ensure the analysis directly relates the user's messages to the specific factors and insights from the uploaded document.
@@ -61,8 +63,11 @@ def analyze_conversation(conversation: List[Dict], rag_system, conversation_id: 
     susceptibility_score = re.search(r'(\d+(?:\.\d+)?)%', analysis_result)
     susceptibility_score = float(susceptibility_score.group(1)) if susceptibility_score else 0
 
-    susceptibility_cues = re.findall(r'Cue:\s*(.*?)\s*-', analysis_result)
-    susceptibility_cues = susceptibility_cues[:3]
+    vulnerable_cues = re.findall(r'\+ve Cue:\s*(.*?)\s*-', analysis_result)
+    vulnerable_cues = vulnerable_cues[:3]
+
+    defensive_cues = re.findall(r'\-ve Cue:\s*(.*?)\s*-', analysis_result)
+    # defensive_cues = defensive_cues[:3]
 
     phrases = re.findall(r'Phrase:\s*(.*?)(?=\n|$)', analysis_result)
     phrases = phrases[:3] 
@@ -71,7 +76,7 @@ def analyze_conversation(conversation: List[Dict], rag_system, conversation_id: 
     feedback = feedback[:2]
 
     # Append the result to the CSV file
-    fieldnames = ['Conversation_ID', 'Positive_Susceptibility_Cues', 'Phrases', 'Susceptibility_Score', 'Feedback']
+    fieldnames = ['Conversation_ID', 'Positive_Susceptibility_Cues', 'Negative_Susceptibility_Cues', 'Phrases', 'Susceptibility_Score', 'Feedback']
     
     file_exists = os.path.isfile(csv_filename)
     
@@ -84,7 +89,8 @@ def analyze_conversation(conversation: List[Dict], rag_system, conversation_id: 
 
         writer.writerow({
             'Conversation_ID': conversation_id,
-            'Positive_Susceptibility_Cues': ';'.join(susceptibility_cues),
+            'Positive_Susceptibility_Cues': ';'.join(vulnerable_cues),
+            'Negative_Susceptibility_Cues': ';'.join(defensive_cues),
             'Phrases': ';'.join(phrases),
             'Susceptibility_Score': susceptibility_score,
             'Feedback': ';'.join(feedback)
