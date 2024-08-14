@@ -5,7 +5,7 @@ import io
 from typing import List, Dict
 
 # Function to analyze conversation for social engineering susceptibility
-def analyze_conversation(conversation: List[Dict], rag_system, conversation_id: int, csv_filename: str = "New_hire.csv"):
+def analyze_conversation(conversation: List[Dict], rag_system, conversation_id: int, csv_filename: str = "Remote_Worker.csv"):
  # Combine messages into a single string, preserving the conversation flow
     full_conversation = "\n".join([
         f"{'User' if msg['role'] == 'user' else 'AI'}: {msg['content']}"
@@ -46,7 +46,7 @@ def analyze_conversation(conversation: List[Dict], rag_system, conversation_id: 
     Ensure to double the raw score if private information is shared. Give an explanation of the score being calcualated.
     2. Identification of positive susceptibility cues from the user evident in the conversation that indicate vulnerability. 
     Format as "+ve Cue: [Heading] - [Description]". 
-    3. Identification of any negative susceptibility cues from the user evident in the conversation that indicate vulnerability. 
+    3. If any negative susceptibility cues from the user evident in the conversation that indicate vulnerability. Mention None if nothing is found.
     Format as "-ve Cue: [Heading] - [Description]". 
     4. Identifying of at most 3 phrases or words from the user that are indicative of social engineering attacks based on the conversation. 
     Format as "Phrase: [Example]"

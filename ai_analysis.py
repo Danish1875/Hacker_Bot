@@ -20,7 +20,8 @@ def analyze_ai_messages(conversation: List[Dict], rag_system, conversation_id: i
     deceptive or persuasive techniques.
 
     Analysis:
-    Identify the top 3 most distinctive deceptive or persuasive techniques used by the AI, give a one line example from the conversation for each. 
+    Use overall knowledge to identify the top 3 most distinctive deceptive or persuasive techniques used by the AI, give a one line example 
+    from the conversation for each.
     
     Do not provide any additional notes or conclusions.
     """
