@@ -5,7 +5,7 @@ import io
 from typing import List, Dict
 
 # Function to analyze conversation for social engineering susceptibility
-def analyze_conversation(conversation: List[Dict], rag_system, conversation_id: int, csv_filename: str = "Remote_Worker.csv"):
+def analyze_conversation(conversation: List[Dict], rag_system, conversation_id: int, csv_filename: str = "Seasoned_Veteran.csv"):
  # Combine messages into a single string, preserving the conversation flow
     full_conversation = "\n".join([
         f"{'User' if msg['role'] == 'user' else 'AI'}: {msg['content']}"
@@ -32,24 +32,15 @@ def analyze_conversation(conversation: List[Dict], rag_system, conversation_id: 
     Conversation:
     {full_conversation}
 
-    Consider:
-    Conversational norms: Recognize that certain phrases are neutral cues and do not indicate any signs of susceptibility. Use document insights 
-    and overall knowledge to identify such phrases.
-    Situational awareness: Consider the overall context of the interaction, not just individual phrases and only analyse the user's responses.
-    Consistency: Look for patterns of behavior in the user's responses rather than isolated instances.
-
-    Ensure the user has not answered any security question or disclosed any sensitive information that could lead to vulnerability. 
-    Provide insights from document if breached.
-
     Provide a detailed report including:
     1. Calculate overall susceptibility score percentage of the user. Identify if any positive and negative susceptible cues used by the user in the conversation. 
     Ensure to double the raw score if private information is shared. Give an explanation of the score being calcualated.
-    2. Identification of positive susceptibility cues from the user evident in the conversation that indicate vulnerability. 
-    Format as "+ve Cue: [Heading] - [Description]". 
+    2. Identification of any positive susceptibility cues from the user evident in the conversation that indicate vulnerability. Do not mention a susceptibility cue if 
+    it is not found in the conversation. Format as "+ve Cue: [Heading] - [Description]". 
     3. If any negative susceptibility cues from the user evident in the conversation that indicate vulnerability. Mention None if nothing is found.
     Format as "-ve Cue: [Heading] - [Description]". 
-    4. Identifying of at most 3 phrases or words from the user that are indicative of social engineering attacks based on the conversation. 
-    Format as "Phrase: [Example]"
+    4. Identifying of at most 3 phrases or sentences from the user that are indicative of social engineering attacks based on the conversation and 
+    not cues that indicate resilient security awareness. Format as "Phrase: [Example]". Make sure you understand the context of the conversation.
     5. Personalized feedback strategies and countermeasures for improving user's resilience against social engineering attack in the current conversation, 
     use document insights and overall knowledge. Format as "Feedback: [Heading] - [Example]"
 
@@ -64,7 +55,7 @@ def analyze_conversation(conversation: List[Dict], rag_system, conversation_id: 
     susceptibility_score = float(susceptibility_score.group(1)) if susceptibility_score else 0
 
     vulnerable_cues = re.findall(r'\+ve Cue:\s*(.*?)\s*-', analysis_result)
-    vulnerable_cues = vulnerable_cues[:3]
+    # vulnerable_cues = vulnerable_cues[:3]
 
     defensive_cues = re.findall(r'\-ve Cue:\s*(.*?)\s*-', analysis_result)
     # defensive_cues = defensive_cues[:3]
