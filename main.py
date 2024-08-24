@@ -89,7 +89,6 @@ if 'conversation_id' not in st.session_state:
     st.session_state.conversation_id = get_unique_id()
 
 # Function to initialize RAG system
-# @st.cache_resource
 def initialize_rag():
     pdf_path = "Knowledgebase.pdf"
     pdf_loader = PyPDFLoader(pdf_path)
