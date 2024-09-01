@@ -55,10 +55,8 @@ def analyze_conversation(conversation: List[Dict], rag_system, conversation_id: 
     susceptibility_score = float(susceptibility_score.group(1)) if susceptibility_score else 0
 
     vulnerable_cues = re.findall(r'\+ve Cue:\s*(.*?)\s*-', analysis_result)
-    # vulnerable_cues = vulnerable_cues[:3]
 
     defensive_cues = re.findall(r'\-ve Cue:\s*(.*?)\s*-', analysis_result)
-    # defensive_cues = defensive_cues[:3]
 
     phrases = re.findall(r'Phrase:\s*(.*?)(?=\n|$)', analysis_result)
     phrases = phrases[:3] 
