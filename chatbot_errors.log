@@ -1,1 +1,2 @@
 ERROR:root:Error generating response: Invalid operation: The `response.text` quick accessor requires the response to contain a valid `Part`, but none were returned. Please check the `candidate.safety_ratings` to determine if the response was blocked.
+INFO:backoff:Backing off send_request(...) for 0.2s (requests.exceptions.ReadTimeout: HTTPSConnectionPool(host='us-api.i.posthog.com', port=443): Read timed out. (read timeout=15))
