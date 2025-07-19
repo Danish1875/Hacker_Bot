@@ -101,7 +101,7 @@ def initialize_rag():
     embeddings = GoogleGenerativeAIEmbeddings(model="models/text-embedding-004", google_api_key=GOOGLE_API_KEY)
     vector_index = Chroma.from_texts(texts, embeddings).as_retriever(search_kwargs={"k": 5})
     
-    model = ChatGoogleGenerativeAI(model="gemini-1.5-flash", google_api_key=GOOGLE_API_KEY, temperature=0.3)
+    model = ChatGoogleGenerativeAI(model="gemini-2.5-flash", google_api_key=GOOGLE_API_KEY, temperature=0.3)
     qa_chain = RetrievalQA.from_chain_type(model, retriever=vector_index, return_source_documents=True)
     
     return qa_chain
