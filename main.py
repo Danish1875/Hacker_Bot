@@ -40,7 +40,7 @@ if "ai_persona" not in st.session_state:
 
 # Function to generate AI response
 def generate_response(prompt, chat_history):
-    model = genai.GenerativeModel('gemini-1.5-flash')
+    model = genai.GenerativeModel('gemini-2.5-flash')
     ai_persona = st.session_state.ai_persona
     conversation = f"AI Persona: {ai_persona['name']}, Head of {ai_persona['department']}\n\n"
     conversation += prompt + "\n\n" + "\n".join([f"{'User' if m['role'] == 'user' else 'AI'}: {m['content']}" for m in chat_history])
